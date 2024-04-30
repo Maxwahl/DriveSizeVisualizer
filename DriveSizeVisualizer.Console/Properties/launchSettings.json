@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DriveSizeVisualizer.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\Users\\mexxw\\Documents\\Work"
+    }
+  }
+}
