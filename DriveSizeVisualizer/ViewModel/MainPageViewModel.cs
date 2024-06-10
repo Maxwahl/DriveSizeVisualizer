@@ -15,7 +15,6 @@ namespace DriveSizeVisualizer.ViewModel
 {
     public class MainPageViewModel : INotifyPropertyChanged
     {
-
         private DriveSizeLib.Model.Directory? _directory;
         public ObservableCollection<FileSystemElementUpdate> LogQueue { get; }
         public bool ComputeParallel { get; set; } = false;
@@ -151,5 +150,12 @@ namespace DriveSizeVisualizer.ViewModel
 
         public void OnPropertyChanged([CallerMemberName] string name = "") =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        internal void Log(FileSystemElementUpdate update)
+        {
+            LogQueue.Add(update);
+            if (LogQueue.Count %10 == 0)
+                OnPropertyChanged(nameof(LogQueue));
+        }
     }
 }

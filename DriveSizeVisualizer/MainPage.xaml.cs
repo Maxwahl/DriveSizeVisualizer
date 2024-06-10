@@ -49,6 +49,7 @@ namespace DriveSizeVisualizer
                 ViewModel.LogQueue.Clear();
 
                 ViewModel.LoadingFinished = false;
+                await Task.Delay(100);
                 IProgress<FileSystemElementUpdate> progressReport = new Progress<FileSystemElementUpdate>(OnProgressReported);
                 var stopwatch = Stopwatch.StartNew();
                 DriveSizeLib.Model.Directory? dir =null;
@@ -60,18 +61,17 @@ namespace DriveSizeVisualizer
                         cts: CancellationTokenSource.Token,
                         computeParallel:ViewModel.ComputeParallel,
                         progress:progressReport);
-                });
-
-                stopwatch.Stop();
-                ViewModel.LoadingFinished = true;
-                ViewModel.LastLoadingTimeText = $"Last loading Time: {stopwatch.ElapsedMilliseconds} ms";
-                ViewModel.Directory = dir;
+                    stopwatch.Stop();
+                    ViewModel.LoadingFinished = true;
+                    ViewModel.LastLoadingTimeText = $"Last loading Time: {stopwatch.ElapsedMilliseconds} ms";
+                    ViewModel.Directory = dir;
+                });          
             }
         }
 
         public void OnProgressReported(FileSystemElementUpdate update)
         {
-            ViewModel.LogQueue.Add(update);
+            ViewModel.Log(update);
         }
 
         private void OnCounterClicked(object sender, EventArgs e)
