@@ -6,13 +6,19 @@ using System.Threading.Tasks;
 
 namespace DriveSizeLib.Model
 {
-    public record File(string Path, string Type,long Size) : FileSystemElement(Path)
-    {
-        public override double SizeInKB { 
-            get
-            {
-                return Size / 1024.0;
-            }
+    public class File : FileSystemElement {
+        public string Type { get; set; }
+        private long _size =0;
+
+        public File(string entry, Directory curr, string extension, long length) : base(entry,curr)
+        {
+            Type = extension;
+            _size = length;
         }
+
+        public File(string path, FileSystemElement? parent) : base(path, parent)
+        {
+        }
+        public override long Size { get { return _size; }}
     }
 }

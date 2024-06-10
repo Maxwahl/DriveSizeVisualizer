@@ -1,9 +1,4 @@
 ﻿using DriveSizeLib.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DriveSizeLib.Util
 {
@@ -12,10 +7,10 @@ namespace DriveSizeLib.Util
         public static void Print(FileSystemElement element, int indent = 0)
         {
             string indentString = new('-', 2*indent);
-            Console.WriteLine($"{indentString} {element.Path}: {PrettyPrintSize(element.SizeInKB)}");
+            Console.WriteLine($"{indentString} {element.Path}: {PrettyPrintSize(element.Size)}");
             if(element is Model.Directory dir)
             {
-                if (dir.Children.Length < 20)
+                if (dir.Children.Count() < 20)
                 {
                     foreach (var child in dir.Children)
                     {
@@ -25,22 +20,35 @@ namespace DriveSizeLib.Util
             }
         }
 
-        private static string PrettyPrintSize(double sizeInKB)
+        public static string PrettyPrintSize(long size)
         {
-            if (sizeInKB < 1)
+            if (size < 1024)
             {
-                return sizeInKB * 1024.0 + " Bytes";
+                return $"{(size):F2} Bytes";
             }
-            else if (sizeInKB < 1024)
+            else if (size < 1024 * 1024)
             {
-                return sizeInKB + " KB";
+                return $"{(size / 1024.0):F2} KB";
             }
-            else if (sizeInKB < 1024 * 1024)
+            else if (size < 1024 * 1024 *1024)
             {
-                return sizeInKB / 1024.0 + " MB";
+                return $"{(size / (1024.0*1024.0)):F2} MB";
             }
             else 
-                return sizeInKB / (1024 * 1024) +" GB";
+                return $"{(size / (1024 * 1024 *1024.0)):F2} GB";
+        }
+
+        public static List<string> GetAllFileTypes(FileSystemElement element)
+        {
+            if(element is Model.Directory dir)
+            {
+                return dir.Children.SelectMany(it => GetAllFileTypes(it)).Distinct().ToList();
+            }
+            else
+            {
+                var file = element as Model.File;
+                return [file.Type];
+            }
         }
     }
 }

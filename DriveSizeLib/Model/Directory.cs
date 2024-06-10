@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DriveSizeLib.Util;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,14 +8,15 @@ using System.Threading.Tasks;
 
 namespace DriveSizeLib.Model
 {
-    public record Directory(string Path, FileSystemElement[] Children) : FileSystemElement(Path)
+    public class Directory : FileSystemElement
     {
-        private double? _size;
-        public override double SizeInKB { get
-            {
-                _size??= Children.Sum(it => it.SizeInKB);
-                return _size.Value;
-            }
+        public Directory(string path, FileSystemElement? parent) : base(path, parent)
+        {
+            Children = new List<FileSystemElement>();
         }
+
+        public List<FileSystemElement> Children { get; set; }
+
+        public override long Size => Children.Sum(it => it.Size);    
     }
 }
