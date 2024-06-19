@@ -20,5 +20,6 @@ namespace DriveSizeLib.Model
         {
         }
         public override long Size { get { return _size; }}
+
     }
 }

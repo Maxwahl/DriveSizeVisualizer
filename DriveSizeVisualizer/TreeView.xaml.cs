@@ -88,18 +88,18 @@ namespace DriveSizeVisualizer
             }
         }
 
-        private IQueryable<FileSystemElement> GetOrderedChildren(Tuple<string,bool>filter)
-        {
-            var source = Node.Children.AsQueryable();
-            var expression = source.Expression;
-            ParameterExpression parameter = Expression.Parameter(typeof(FileSystemElement));
-            var selector = Expression.Property(parameter, filter.Item1);
-            var method = filter.Item2 ? "OrderBy":"OrderByDescending";
-            expression = Expression.Call(typeof(Queryable), method,
-                new[] { source.ElementType, selector.Type },
-                expression, Expression.Quote(Expression.Lambda(selector, parameter)));
-            return source.Provider.CreateQuery<FileSystemElement>(expression);
-        }
+            private IQueryable<FileSystemElement> GetOrderedChildren(Tuple<string,bool>filter)
+            {
+                var source = Node.Children.AsQueryable();
+                var expression = source.Expression;
+                ParameterExpression parameter = Expression.Parameter(typeof(FileSystemElement));
+                var selector = Expression.Property(parameter, filter.Item1);
+                var method = filter.Item2 ? "OrderBy":"OrderByDescending";
+                expression = Expression.Call(typeof(Queryable), method,
+                    new[] { source.ElementType, selector.Type },
+                    expression, Expression.Quote(Expression.Lambda(selector, parameter)));
+                return source.Provider.CreateQuery<FileSystemElement>(expression);
+            }
 
         public DriveSizeLib.Model.Directory Node
         {

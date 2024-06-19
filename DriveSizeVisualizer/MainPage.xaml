@@ -4,8 +4,17 @@
              x:Class="DriveSizeVisualizer.MainPage"
              xmlns:customVM="clr-namespace:DriveSizeVisualizer.ViewModel"
                 xmlns:custom="clr-namespace:DriveSizeVisualizer"
+                xmlns:material="clr-namespace:UraniumUI.Material.Controls;assembly=UraniumUI.Material"
+                xmlns:uranium="http://schemas.enisn-projects.io/dotnet/maui/uraniumui"
+
+             xmlns:m="clr-namespace:DriveSizeLib.Model;assembly=DriveSizeLib"
              x:Name="main"
              x:DataType="customVM:MainPageViewModel">
+    <ContentPage.Resources>
+        <Style TargetType="Path" Class="TreeView.Arrow" BaseResourceKey="Microsoft.Maui.Controls.Shapes.Path">
+            <Setter Property="Fill" Value="White" />
+        </Style>
+    </ContentPage.Resources>
     <Grid ColumnSpacing="20"
         Padding="30,0">
         <Grid.RowDefinitions>
@@ -34,7 +43,7 @@
                 />
             <Label>ComputeMode</Label>
             <StackLayout RadioButtonGroup.GroupName="ComputeMode" RadioButtonGroup.SelectedValue="{Binding ComputeParallel,Mode=TwoWay}">
-                <RadioButton Value="true" Content ="Parallel" IsEnabled="False"></RadioButton>
+                <RadioButton Value="true" Content ="Parallel"></RadioButton>
                 <RadioButton Value="false" Content="Sequential" IsChecked="True"></RadioButton>
             </StackLayout>
             <Label>SortOder</Label>
@@ -48,14 +57,56 @@
             </StackLayout>
             <Label>FileType</Label>
             <Picker ItemsSource="{Binding AvailableFileTypes, Mode=TwoWay}" SelectedItem="{Binding FilterFileType,Mode=TwoWay}"></Picker>
+            <Button 
+                Clicked="On_ClearFilter"
+                FontSize="8" Padding="0" 
+                Text="Clear Filter" 
+                Margin="0" 
+                MinimumHeightRequest="20"
+                ></Button>
             <Label>FileName</Label>
             <Entry Placeholder="Enter search string" Text="{Binding FilterSearchString,Mode=TwoWay}"> </Entry>
+            <Label>RenderDepth</Label>
+            <Entry Keyboard="Numeric" Text="{Binding RenderDepth,Mode=TwoWay}"></Entry>
         </VerticalStackLayout>
-        <ScrollView IsVisible="{Binding LoadingFinished,Mode=TwoWay}" Grid.Row="0" Grid.Column="1">
-            <custom:TreeView
-                        Node="{Binding Directory,Mode=TwoWay}" Sort="{Binding Sort,Mode=TwoWay}" Filter="{Binding Filter,Mode=TwoWay}">
-            </custom:TreeView>
-            </ScrollView>
+        <ScrollView  
+            IsVisible="{Binding ShowTree,Mode=TwoWay}" 
+            Grid.Row="0" Grid.Column="1">
+            <VerticalStackLayout>
+            <Button Text="&lt;" Clicked="On_Back" MinimumHeightRequest="10" WidthRequest="12"
+            FontSize="10" Padding="0" Margin="0"
+></Button>
+            <material:TreeView 
+                ItemsSource="{Binding Directories}" 
+                IsExpandedPropertyName="IsExtended"
+                >
+                <material:TreeView.ItemTemplate>
+                    <DataTemplate x:DataType="customVM:FileSystemElementTreeWrapper">
+                        <HorizontalStackLayout Spacing="5">
+                                <Label Text="{Binding Name}">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer 
+                                        Command="{Binding ExpandCommand}" CommandParameter="{Binding .}"></TapGestureRecognizer>
+                      
+                                        </Label.GestureRecognizers>
+                                </Label>
+                                <Button 
+                            Command="{Binding ViewSubDirectoryCommand}" 
+                                CommandParameter="{Binding .}"
+                                IsVisible="{Binding ButtonVisible,Mode=TwoWay}"
+                            FontSize="8" Padding="0" 
+                            Text="View SubDirectory" 
+                            Margin="0" 
+                            MinimumHeightRequest="20"
+                            >
+
+                            </Button>
+                        </HorizontalStackLayout>
+                    </DataTemplate>
+                </material:TreeView.ItemTemplate>
+                </material:TreeView>
+            </VerticalStackLayout>
+        </ScrollView>
         <ActivityIndicator IsRunning="{Binding LoadingRunning,Mode=OneWay}" Grid.Row="0" Grid.Column="1"/>
         <Grid Grid.Row="0" Grid.Column="2">
             <Grid.ColumnDefinitions>

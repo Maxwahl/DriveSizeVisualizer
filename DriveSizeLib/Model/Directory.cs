@@ -2,21 +2,42 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace DriveSizeLib.Model
 {
-    public class Directory : FileSystemElement
+    public class Directory(string path, FileSystemElement? parent) : FileSystemElement(path, parent)
     {
-        public Directory(string path, FileSystemElement? parent) : base(path, parent)
+        public IList<FileSystemElement> Children { get; set; } = [];
+
+
+
+        public override long Size => Children.Sum(it => it.Size);
+
+        internal void AddChild(FileSystemElement? child)
         {
-            Children = new List<FileSystemElement>();
+            lock (this.Children)
+            {
+                this.Children.Add(child);
+            }
         }
 
-        public List<FileSystemElement> Children { get; set; }
+        public void SetChildren(List<FileSystemElement> newChildren)
+        {
+            lock(this.Children)
+            {
+                Children.Clear();
+                foreach (var child in newChildren)
+                    Children.Add(child);
+            }
+        }
 
-        public override long Size => Children.Sum(it => it.Size);    
+        
+
     }
 }

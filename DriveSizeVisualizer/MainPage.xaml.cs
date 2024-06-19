@@ -5,16 +5,24 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using DriveSizeLib.Model;
 using DriveSizeVisualizer.ViewModel;
 using System.Diagnostics;
+using System.Windows.Input;
+using TreeView.Maui.Core;
 
 namespace DriveSizeVisualizer
 {
     public partial class MainPage : ContentPage
     {
         public MainPageViewModel ViewModel { get; set; }
-        public CancellationTokenSource CancellationTokenSource { get; set; }
+        public CancellationTokenSource? CancellationTokenSource { get; set; }
         public MainPage()
         {
             InitializeComponent();
+            /*ViewSubDirectoryCommand = new Command<FileSystemElement>(
+            async (FileSystemElement element) =>
+            {
+                ViewModel.AddDirectory(element as  DriveSizeLib.Model.Directory);
+            });*/
+            
             ViewModel = new MainPageViewModel();
             this.BindingContext = ViewModel;
             InitializeSort();
@@ -45,7 +53,6 @@ namespace DriveSizeVisualizer
                 FolderPicker.Default.PickAsync();
             if (result != null && result.Folder != null)
             {
-                ViewModel.Directory = null;
                 ViewModel.LogQueue.Clear();
 
                 ViewModel.LoadingFinished = false;
@@ -61,27 +68,41 @@ namespace DriveSizeVisualizer
                         cts: CancellationTokenSource.Token,
                         computeParallel:ViewModel.ComputeParallel,
                         progress:progressReport);
-                    stopwatch.Stop();
-                    ViewModel.LoadingFinished = true;
-                    ViewModel.LastLoadingTimeText = $"Last loading Time: {stopwatch.ElapsedMilliseconds} ms";
-                    ViewModel.Directory = dir;
-                });          
+                    
+                });
+                stopwatch.Stop();
+                ViewModel.LastLoadingTimeText = $"Last loading Time: {stopwatch.ElapsedMilliseconds} ms";
+                await Task.Delay(30);
+                ViewModel.AddDirectory(dir);
+                ViewModel.LoadingFinished = true;   
+
             }
-        }
+        }   
+
 
         public void OnProgressReported(FileSystemElementUpdate update)
         {
             ViewModel.Log(update);
         }
 
-        private void OnCounterClicked(object sender, EventArgs e)
+        private async void OnCounterClicked(object sender, EventArgs e)
         {
-            PickAndShow();
+            await PickAndShow();
         }
 
-        private async void OnCancelClicked(object sender, EventArgs e)
+        private void OnCancelClicked(object sender, EventArgs e)
         {
             CancellationTokenSource?.Cancel();
+        }
+
+        private void On_Back(object sender, EventArgs e)
+        {
+            ViewModel.GoBack();
+        }
+        private void On_ClearFilter(object sender, EventArgs e)
+        {
+            this.ViewModel.FilterFileType = null;
+            
         }
     }
 

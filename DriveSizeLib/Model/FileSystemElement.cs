@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TreeView.Maui.Core;
 namespace DriveSizeLib.Model
 {
     public abstract class FileSystemElement
@@ -11,7 +12,6 @@ namespace DriveSizeLib.Model
         public FileSystemElement? Parent { get; set; }
         [Sortable]
         public abstract long Size { get; }
-
         protected FileSystemElement(string path, FileSystemElement? parent)
         {
             Path = path;

@@ -16,49 +16,44 @@ namespace DriveSizeLib.Logic
     {
         public static async Task<Model.Directory?> AnalyzeDirectory(string path, Model.Directory? parent, CancellationToken cts,bool ignoreInaccessible = true,bool computeParallel = false,IProgress<FileSystemElementUpdate>? progress = null)
         {
-            if (string.IsNullOrEmpty(path)) 
+            if (string.IsNullOrEmpty(path))
             {
                 throw new ArgumentException($"Argument {nameof(path)} is null or empty");
             }
             if (cts.IsCancellationRequested)
                 return null;
-                var entries = Directory.EnumerateFileSystemEntries(path, "*",
-                    new EnumerationOptions()
-                    {
-                        IgnoreInaccessible = ignoreInaccessible,
-                        RecurseSubdirectories = false,
-                        ReturnSpecialDirectories = false,
-                    });
+            var entries = Directory.GetFileSystemEntries(path, "*",
+                new EnumerationOptions()
+                {
+                    IgnoreInaccessible = ignoreInaccessible,
+                    RecurseSubdirectories = false,
+                    ReturnSpecialDirectories = false,
+                    BufferSize = 4096,
+                });
             var directory = new LibDir(path, parent);
-            progress?.Report(new FileSystemElementUpdate(path, parent?.Path??""));
+            progress?.Report(new FileSystemElementUpdate(path, parent?.Path ?? ""));
             if (!cts.IsCancellationRequested)
             {
-                if (computeParallel)
+                if(!computeParallel)
                 {
-                    try
+                    foreach (var entry in entries)
                     {
-                        Parallel.ForEach(entries, new ParallelOptions() { CancellationToken = cts }, async (entry) =>
-                        {
-                            await DiscoverDirectory(path, entry, directory, cts, ignoreInaccessible, computeParallel, progress);
-                        });
-                    }
-                    catch (OperationCanceledException)
-                    {
+                        await DiscoverDirectory(path, entry, directory, cts, ignoreInaccessible,computeParallel, progress);
                     }
                 }
                 else
                 {
-                    foreach (var entry in entries)
-                    {
-                        await DiscoverDirectory(path, entry, directory, cts, ignoreInaccessible, computeParallel, progress);
-                    }
+                    Parallel.ForEach(entries, async (entry) => await DiscoverDirectory(path, entry, directory, cts, ignoreInaccessible, computeParallel, progress));
                 }
+                
+
             }
             return directory;
-            
         }
 
-        private static async Task DiscoverDirectory(string path, string entry, LibDir directory, CancellationToken cts, bool ignoreInaccessible, bool computeParallel, IProgress<FileSystemElementUpdate>? progress)
+
+
+        private static async Task DiscoverDirectory(string path, string entry, LibDir directory, CancellationToken cts, bool ignoreInaccessible,bool computeParallel, IProgress<FileSystemElementUpdate>? progress)
         {
             FileAttributes attr = System.IO.File.GetAttributes(entry);
             if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
@@ -66,8 +61,8 @@ namespace DriveSizeLib.Logic
 
                 if (!cts.IsCancellationRequested)
                 {
-                    var child = await AnalyzeDirectory(entry, directory, cts, ignoreInaccessible, computeParallel, progress);
-                        directory.Children.Add(child);                    
+                    var child = await AnalyzeDirectory(entry, directory, cts, ignoreInaccessible,computeParallel, progress);
+                        directory.AddChild(child);                    
                 }
             }
             else
@@ -77,7 +72,7 @@ namespace DriveSizeLib.Logic
                     new FileUpdate(entry, path, fileInfo.Length, fileInfo.Extension)
                     );
                 var file = new Model.File(entry, directory, fileInfo.Extension, fileInfo.Length);
-                directory.Children.Add(file);
+                directory.AddChild(file);
             }
         }
     }
